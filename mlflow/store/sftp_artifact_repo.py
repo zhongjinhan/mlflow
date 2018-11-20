@@ -64,15 +64,16 @@ class SFTPArtifactRepository(ArtifactRepository):
     def list_artifacts(self, path=None):
         artifact_dir = self.path
         list_dir = os.path.join(artifact_dir, path) if path else artifact_dir
-        artifact_files = self.sftp.listdir(list_dir)
         infos = []
-        for file_name in artifact_files:
-            file_path = file_name if path is None else os.path.join(path, file_name)
-            full_file_path = os.path.join(list_dir, file_name)
-            if self.sftp.isdir(full_file_path):
-                infos.append(FileInfo(file_path, True, None))
-            else:
-                infos.append(FileInfo(file_path, False, self.sftp.stat(full_file_path).st_size))
+        if self.sftp.isdir(list_dir):
+            artifact_files = self.sftp.listdir(list_dir)
+            for file_name in artifact_files:
+                file_path = file_name if path is None else os.path.join(path, file_name)
+                full_file_path = os.path.join(list_dir, file_name)
+                if self.sftp.isdir(full_file_path):
+                    infos.append(FileInfo(file_path, True, None))
+                else:
+                    infos.append(FileInfo(file_path, False, self.sftp.stat(full_file_path).st_size))
         return infos
 
     def _download_file(self, remote_file_path, local_path):
